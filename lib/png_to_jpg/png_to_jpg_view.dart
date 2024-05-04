@@ -16,6 +16,7 @@ class _PngTOJpgViewState extends State<PngTOJpgView> {
   ImageFormat _selectedFormat = ImageFormat.jpg;
   final ImagePicker picker = ImagePicker();
   File? _imageFile;
+  File? _imageFileResult;
 
   Future<void> _pickImage() async {
     final pickedFile = await picker.pickImage(source: ImageSource.gallery);
@@ -83,7 +84,7 @@ class _PngTOJpgViewState extends State<PngTOJpgView> {
                         outputFormat: _selectedFormat,
                       );
                       setState(() {
-                        _imageFile = File(outputFilePath);
+                        _imageFileResult = File(outputFilePath);
                       });
                     } else {
                       print('No image selected.');
@@ -94,19 +95,36 @@ class _PngTOJpgViewState extends State<PngTOJpgView> {
               ],
             ),
             const SizedBox(height: 10),
-            Container(
+            SizedBox(
               height: 220,
               width: double.maxFinite,
-              color: Colors.black38,
+              child: Container(
+                height: 220,
+                width: double.maxFinite,
+                decoration: BoxDecoration(
+                    color: Colors.black38,
+                    image: DecorationImage(
+                        image: FileImage(
+                            File(_imageFileResult?.path.toString() ?? "")))),
+              ),
             ),
-            Text(_imageFile?.path.split('/').last ?? ""),
+            Text(_imageFileResult?.path.split('/').last ?? ""),
+            const SizedBox(height: 10),
+            ElevatedButton(
+              onPressed: () async {
+                if (_imageFileResult != null) {
+                } else {
+                  print('No image selected.');
+                }
+              },
+              child: const Text("Download"),
+            ),
           ],
         ),
       ),
     );
   }
 
-  // Method to get local file path
   Future<String> _getLocalFilePath(String fileName) async {
     final directory = await getApplicationDocumentsDirectory();
     return '${directory.path}/$fileName';
@@ -118,26 +136,31 @@ class _PngTOJpgViewState extends State<PngTOJpgView> {
       required ImageFormat outputFormat}) async {
     Uint8List inputBytes = await inputFile.readAsBytes();
     img.Image? inputImage = img.decodeImage(inputBytes);
+
     Uint8List? outputBytes;
     switch (outputFormat) {
       case ImageFormat.jpg:
         outputBytes = img.encodeJpg(inputImage!) as Uint8List?;
-        print("############### mageFormat.jpg $outputBytes");
-        print("############### mageFormat.jpg $outputFile");
-        print("############### mageFormat.jpg $outputFormat");
+        break;
+      case ImageFormat.jpeg:
+        outputBytes = img.encodeJpg(inputImage!) as Uint8List?;
         break;
       case ImageFormat.png:
         outputBytes = img.encodePng(inputImage!) as Uint8List?;
-        print("############### mageFormat.png $outputBytes");
-        print("############### mageFormat.png $outputFile");
-        print("############### mageFormat.png $outputFormat");
+        break;
+      case ImageFormat.gif:
+        outputBytes = img.encodeGif(inputImage!) as Uint8List?;
+        break;
+      case ImageFormat.bmp:
+        outputBytes = img.encodeBmp(inputImage!) as Uint8List?;
+        break;
+      case ImageFormat.tga:
+        outputBytes = img.encodeTga(inputImage!) as Uint8List?;
         break;
     }
+
     await File(outputFile).writeAsBytes(outputBytes!);
   }
 }
 
-enum ImageFormat {
-  jpg,
-  png,
-}
+enum ImageFormat { jpg, jpeg, png, gif, bmp, tga }
