@@ -4,6 +4,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:image/image.dart' as img;
+import 'package:gallery_saver/gallery_saver.dart';
 
 class PngTOJpgView extends StatefulWidget {
   const PngTOJpgView({super.key});
@@ -113,11 +114,18 @@ class _PngTOJpgViewState extends State<PngTOJpgView> {
             ElevatedButton(
               onPressed: () async {
                 if (_imageFileResult != null) {
+                  await GallerySaver.saveImage(_imageFileResult!.path,
+                          albumName: "Convert")
+                      .then((value) {
+                    if (value != null && value) {
+                      print("Save img successfully");
+                    }
+                  });
                 } else {
                   print('No image selected.');
                 }
               },
-              child: const Text("Download"),
+              child: const Text("Save"),
             ),
           ],
         ),
